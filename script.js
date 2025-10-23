@@ -11,6 +11,7 @@ let currentSystemType = 'ip';
 let currentChannels = 4;
 let pipingLength = 0;
 let pipingRate = 85;
+let currentBrand = 'hikvision';
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -142,6 +143,7 @@ function setupEventListeners() {
             brandButtons.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             const selectedBrand = this.getAttribute('data-brand');
+            currentBrand = selectedBrand;
             filterByBrand(selectedBrand);
             applyBrandTheme(selectedBrand);
             updateTotals();
@@ -206,11 +208,8 @@ function updateRecorderForChannels() {
     }
     
     // Update DVR/NVR price based on channels and brand
-    const activeBrandBtn = document.querySelector('.brand-btn.active');
-    const activeBrand = activeBrandBtn ? activeBrandBtn.getAttribute('data-brand') : 'hikvision';
-    
     if (dvrNvrCheckbox) {
-        const priceAttr = dvrNvrCheckbox.getAttribute(`data-price-${currentSystemType}-${activeBrand}-${currentChannels}`);
+        const priceAttr = dvrNvrCheckbox.getAttribute(`data-price-${currentSystemType}-${currentBrand}-${currentChannels}`);
         if (priceAttr) {
             const price = parseFloat(priceAttr);
             const priceElement = document.getElementById('dvr-nvr-price');
@@ -227,10 +226,13 @@ function updateRecorderForChannels() {
 }
 
 function updateSystemType() {
-    // Filter items by system type
+    // Filter items by system type AND brand
     document.querySelectorAll('.item').forEach(item => {
         const types = item.getAttribute('data-types');
-        if (types && types.includes(currentSystemType)) {
+        const brands = item.getAttribute('data-brands');
+        
+        // Show item only if it matches current system type AND current brand
+        if (types && types.includes(currentSystemType) && brands && brands.includes(currentBrand)) {
             item.style.display = 'flex';
         } else if (types) {
             item.style.display = 'none';
@@ -307,10 +309,6 @@ function updateTotals() {
     let servicesSubtotal = 0;
     let cableSubtotal = 0;
     
-    // Get active brand
-    const activeBrandBtn = document.querySelector('.brand-btn.active');
-    const activeBrand = activeBrandBtn ? activeBrandBtn.getAttribute('data-brand') : 'hikvision';
-    
     // Get active storage option
     const activeStorage = document.querySelector('.storage-option.active');
     const storagePrice = activeStorage ? parseFloat(activeStorage.getAttribute('data-price')) : 0;
@@ -341,8 +339,8 @@ function updateTotals() {
                 
                 // Special handling for DVR/NVR with channel-based pricing
                 if (checkbox.id === 'dvr-nvr') {
-                    const priceAttr = checkbox.getAttribute(`data-price-${currentSystemType}-${activeBrand}-${currentChannels}`) || 
-                                    checkbox.getAttribute(`data-price-${currentSystemType}-${activeBrand}`);
+                    const priceAttr = checkbox.getAttribute(`data-price-${currentSystemType}-${currentBrand}-${currentChannels}`) || 
+                                    checkbox.getAttribute(`data-price-${currentSystemType}-${currentBrand}`);
                     price = priceAttr ? parseFloat(priceAttr) : parseFloat(checkbox.getAttribute('data-price')) || 0;
                 } else {
                     // For other items, get price based on system type
@@ -409,9 +407,12 @@ function updateTotals() {
 function filterByBrand(brand) {
     document.querySelectorAll('.item').forEach(item => {
         const brands = item.getAttribute('data-brands');
-        if (brands && brands.includes(brand)) {
+        const types = item.getAttribute('data-types');
+        
+        // Show item only if it matches the selected brand AND current system type
+        if (brands && brands.includes(brand) && types && types.includes(currentSystemType)) {
             item.style.display = 'flex';
-        } else if (brands) {
+        } else {
             item.style.display = 'none';
             
             // Uncheck hidden items
@@ -420,8 +421,11 @@ function filterByBrand(brand) {
         }
     });
     
-    // Also filter by system type
-    updateSystemType();
+    // Update DVR/NVR specifically for the selected brand and channels
+    updateRecorderForChannels();
+    
+    // Also update all prices for the current system type
+    updatePricesForSystemType();
 }
 
 function applyBrandTheme(brand) {
@@ -444,13 +448,11 @@ function generatePDF() {
     const doc = new jsPDF();
     
     // Get active brand for theming
-    const activeBrandBtn = document.querySelector('.brand-btn.active');
-    const activeBrand = activeBrandBtn ? activeBrandBtn.getAttribute('data-brand') : 'hikvision';
-    const brandName = activeBrand === 'hikvision' ? 'Hikvision' : 'Dahua';
+    const brandName = currentBrand === 'hikvision' ? 'Hikvision' : 'Dahua';
     const systemTypeName = currentSystemType === 'analog' ? 'Analog' : 'IP';
     
     // Set brand-specific colors
-    const primaryColor = activeBrand === 'hikvision' ? [229, 51, 56] : [0, 86, 164];
+    const primaryColor = currentBrand === 'hikvision' ? [229, 51, 56] : [0, 86, 164];
     
     // PAGE 1: Header and Quote Details
     // Add company header with brand colors
@@ -459,14 +461,14 @@ function generatePDF() {
     
     // Add brand logo
     try {
-        doc.addImage(brandLogos[activeBrand], 'PNG', 20, 8, 35, 12);
+        doc.addImage(brandLogos[currentBrand], 'PNG', 20, 8, 35, 12);
     } catch (e) {
         console.warn('Logo not loaded:', e);
     }
     
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
-    doc.text('Crown Secure Systems', 105, 18, { align: 'center' });
+    doc.text('Crown Secure Systems', 105, 14, { align: 'center' });
     doc.setFontSize(16);
     doc.text('Professional CCTV Installation', 105, 26, { align: 'center' });
     doc.setFontSize(14);
@@ -478,7 +480,7 @@ function generatePDF() {
     
     doc.setFontSize(20);
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.text('SECURITY SYSTEM QUOTE', 20, yPosition = 60);
+    doc.text('SECURITY SYSTEM QUOTE', 20, yPosition = 55);
     yPosition += 12;
     
     doc.setFontSize(14);
@@ -604,10 +606,6 @@ function generatePDF() {
         // Calculate height for this row with consistent line height
         const rowHeight = Math.max(10, splitName.length * 5);
         yPosition += rowHeight;
-        
-        // REMOVED: Per-item bottom borders - keeping only header underline
-        // doc.setDrawColor(220, 220, 220);
-        // doc.line(descX, yPosition - 2, 190, yPosition - 2);
         
         subtotal += item.totalValue;
         itemCount++;
