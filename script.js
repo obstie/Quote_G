@@ -269,7 +269,8 @@ function updatePricesForSystemType() {
             const priceElement = item.querySelector('.item-price');
             if (priceElement) {
                 const isCable = checkbox.id.includes('cable');
-                priceElement.innerHTML = `R ${formatCurrency(variedPrice)}${isCable ? '/m' : ''}`;
+                const isConnector = checkbox.id.includes('connectors');
+                priceElement.innerHTML = `R ${formatCurrency(variedPrice)}${isCable ? '/m' : isConnector ? '/pack' : ''}`;
             }
         }
     });
@@ -289,7 +290,9 @@ function applyRandomPriceVariations() {
         { id: 'dahua-dome', original: 1199 },
         { id: '4k-cam', original: 2999 },
         { id: 'solar-flood', original: 1299 },
-        { id: 'junction-box', original: 63 }
+        { id: 'junction-box', original: 63 },
+        { id: 'bnc-connectors', original: 15 },
+        { id: 'rj45-connectors', original: 25 }
     ];
     
     items.forEach(item => {
@@ -365,7 +368,7 @@ function updateTotals() {
                 itemTotalElement.innerHTML = `R ${formatCurrency(itemTotal)}`;
                 
                 // Separate cable costs
-                if (checkbox.id.includes('cable')) {
+                if (checkbox.id.includes('cable') || checkbox.id.includes('connectors')) {
                     cableSubtotal += itemTotal;
                 } else {
                     equipmentSubtotal += itemTotal;
@@ -500,7 +503,7 @@ function generatePDF() {
     });
     
     // Client details in two columns - consistent line height
-    doc.text(`Client: ${clientName}`, 20, yPosition);
+    doc.text(`Client: ${clientName.charAt(0).toUpperCase() + clientName.slice(1)}`, 20, yPosition);
     doc.text('Quote Date:', 110, yPosition);
     doc.text(formatDate(quoteDate), 145, yPosition);
     yPosition += 8;
@@ -510,7 +513,7 @@ function generatePDF() {
     doc.text(formatDate(validUntil), 145, yPosition);
     yPosition += 8;
     
-    doc.text(`Prepared By: ${preparedBy}`, 20, yPosition);
+    doc.text(`Prepared By: ${preparedBy.charAt(0).toUpperCase() + clientName.slice(1)}`, 20, yPosition);
     yPosition += 8;
     
     doc.text(`Client Address: ${clientAddress}`, 20, yPosition);
@@ -583,6 +586,18 @@ function generatePDF() {
         });
     }
     
+    // Add piping if applicable
+    if (pipingLength > 0) {
+        const pipingTotal = pipingLength * pipingRate;
+        items.push({
+            name: `Conduit & Piping Installation (${pipingLength}m)`,
+            qty: '1',
+            price: `R ${formatCurrency(pipingTotal)}`,
+            total: `R ${formatCurrency(pipingTotal)}`,
+            totalValue: pipingTotal
+        });
+    }
+    
     // Display items with proper formatting - NO PER-ITEM BORDERS
     items.forEach((item, index) => {
         // Check for page break
@@ -621,8 +636,8 @@ function generatePDF() {
     const finalLabourAmount = ceilingAccessible ? labourAmount - 700 : labourAmount;
     
     const taxRate = 0.15;
-    const taxAmount = (subtotal + finalLabourAmount + pipingLength * pipingRate) * taxRate;
-    const grandTotal = subtotal + finalLabourAmount + (pipingLength * pipingRate) + taxAmount;
+    const taxAmount = (subtotal + finalLabourAmount) * taxRate;
+    const grandTotal = subtotal + finalLabourAmount + taxAmount;
     
     // Draw separator line
     doc.setDrawColor(200, 200, 200);
@@ -641,13 +656,6 @@ function generatePDF() {
     doc.text('Full System Installation & Setup:', descX, yPosition);
     doc.text(`R ${formatCurrency(finalLabourAmount)}`, totalX, yPosition, { align: 'right' });
     yPosition += 8;
-    
-    // Piping cost if applicable
-    if (pipingLength > 0) {
-        doc.text('Conduit & Piping:', descX, yPosition);
-        doc.text(`R ${formatCurrency(pipingLength * pipingRate)}`, totalX, yPosition, { align: 'right' });
-        yPosition += 8;
-    }
     
     // VAT
     doc.text('VAT (15%):', descX, yPosition);
@@ -694,8 +702,7 @@ function generatePDF() {
     ["Account Holder", "Crown Secure Systems"],
     ["Bank Name", "Capitec"],
     ["Account Number", "1234567890"],
-    ["Reference", `${clientName}${clientName.endsWith('s') ? "'" : "'s"}  Quote`]
-
+    ["Reference", `Quote For ${clientName.charAt(0).toUpperCase() + clientName.slice(1)}`]
     ];
 
     // Draw table rows with borders
@@ -787,7 +794,7 @@ function generatePDF() {
     // footer text (centered)
     doc.setFontSize(13);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Thank you ${clientName} for considering Crown Secure Systems.`, 105, footerY - 6, { align: 'center' });
+    doc.text(`Thank you ${clientName.charAt(0).toUpperCase() + clientName.slice(1)} for considering Crown Secure Systems.`, 105, footerY - 6, { align: 'center' });
     doc.text('We look forward to securing your property with our professional solutions.', 105, footerY + 6, { align: 'center' });
     
     // Save the PDF
