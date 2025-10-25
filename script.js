@@ -1,12 +1,4 @@
-// Base64 encoded brand logos
-const brandLogos = {
-    hikvision: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTUwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxNTAiIGhlaWdodD0iNDAiIGZpbGw9IiNlNTMyMzgiLz48dGV4dCB4PSI3NSIgeT0iMjUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkhJS1ZJU0lPTjwvdGV4dD48L3N2Zz4=",
-    dahua: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTUwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxNTAiIGhlaWdodD0iNDAiIGZpbGw9IiMwMDU2YTQiLz48dGV4dCB4PSI3NSIgeT0iMjUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkRBSFVBLkNPTSA8L3RleHQ+PC9zdmc+"
-};
-
 // Global variables
-let labourAmount = 1500;
-let cableExtraCharge = 0;
 let currentSystemType = 'ip';
 let currentChannels = 4;
 let pipingLength = 0;
@@ -34,7 +26,6 @@ function initializeApp() {
     setupEventListeners();
     
     // Initial calculations and UI updates
-    updateLabour();
     updateSystemType();
     updateRecorderForChannels();
     updateTotals();
@@ -44,28 +35,6 @@ function initializeApp() {
 }
 
 function setupEventListeners() {
-    // Labour controls
-    const increaseLabourBtn = document.getElementById('increase-labour');
-    const decreaseLabourBtn = document.getElementById('decrease-labour');
-    
-    if (increaseLabourBtn) {
-        increaseLabourBtn.addEventListener('click', function() {
-            labourAmount += 50;
-            updateLabour();
-            updateTotals();
-        });
-    }
-    
-    if (decreaseLabourBtn) {
-        decreaseLabourBtn.addEventListener('click', function() {
-            if (labourAmount > 1500) {
-                labourAmount -= 50;
-                updateLabour();
-                updateTotals();
-            }
-        });
-    }
-    
     // Ceiling access controls
     const accessButtons = document.querySelectorAll('.access-btn');
     accessButtons.forEach(btn => {
@@ -173,12 +142,109 @@ function setupEventListeners() {
             }
         });
     }
+    
+    // New Features Event Listeners
+    setupNewEventListeners();
 }
 
-function updateLabour() {
-    const labourAmountEl = document.querySelector('.labour-amount');
-    if (labourAmountEl) {
-        labourAmountEl.textContent = `R ${formatCurrency(labourAmount)}`;
+function setupNewEventListeners() {
+    // Extra Items functionality
+    const addItemBtn = document.getElementById('add-extra-item');
+    const extraItemsContainer = document.getElementById('extra-items-container');
+
+    addItemBtn.addEventListener('click', function() {
+        const newRow = document.createElement('div');
+        newRow.className = 'extra-item-row';
+        newRow.innerHTML = `
+            <input type="text" class="extra-item-desc" placeholder="Item Description">
+            <input type="number" class="extra-item-price" placeholder="Price" min="0">
+            <button type="button" class="delete-item-btn">Delete</button>
+        `;
+        extraItemsContainer.appendChild(newRow);
+
+        // Add event listener to the new delete button
+        newRow.querySelector('.delete-item-btn').addEventListener('click', function() {
+            newRow.remove();
+            updateTotals();
+        });
+
+        // Add input listeners for the new fields
+        const priceInput = newRow.querySelector('.extra-item-price');
+        const descInput = newRow.querySelector('.extra-item-desc');
+        
+        priceInput.addEventListener('input', updateTotals);
+        descInput.addEventListener('input', updateTotals);
+    });
+
+    // Notes functionality
+    const addNotesBtn = document.getElementById('add-notes-btn');
+    const notesContainer = document.getElementById('notes-container');
+
+    addNotesBtn.addEventListener('click', function() {
+        const newNoteRow = document.createElement('div');
+        newNoteRow.className = 'note-row';
+        newNoteRow.innerHTML = `
+            <input type="text" class="note-headline-input" placeholder="Headline">
+            <textarea class="note-content-textarea" placeholder="List items (each line will be a bullet point)"></textarea>
+            <button type="button" class="delete-item-btn">Delete</button>
+        `;
+        notesContainer.appendChild(newNoteRow);
+
+        // Add event listener to the new delete button
+        newNoteRow.querySelector('.delete-item-btn').addEventListener('click', function() {
+            newNoteRow.remove();
+        });
+    });
+
+    // POE Switch functionality
+    const poeSwitchCheckbox = document.getElementById('poe-switch');
+    const poeSwitchSelect = document.getElementById('poe-switch-select');
+
+    poeSwitchCheckbox.addEventListener('change', function() {
+        updateTotals();
+    });
+
+    poeSwitchSelect.addEventListener('change', function() {
+        updateTotals();
+    });
+
+    // Monitor Installation functionality
+    const monitorCheckbox = document.getElementById('monitor-installation');
+    const monitorBrand = document.getElementById('monitor-brand');
+    const monitorPrice = document.getElementById('monitor-price');
+    const monitorSize = document.getElementById('monitor-size');
+
+    [monitorCheckbox, monitorBrand, monitorPrice, monitorSize].forEach(element => {
+        if (element) {
+            element.addEventListener('input', function() {
+                updateTotals();
+            });
+        }
+    });
+
+    // Full System Installation functionality
+    const systemInstallationAmount = document.getElementById('system-installation-amount');
+    if (systemInstallationAmount) {
+        systemInstallationAmount.addEventListener('input', function() {
+            updateTotals();
+        });
+    }
+
+    // Extra items price inputs
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('extra-item-price') || e.target.classList.contains('extra-item-desc')) {
+            updateTotals();
+        }
+    });
+}
+
+function updatePoeSwitchVisibility() {
+    const poeSwitchSection = document.getElementById('poe-switch-section');
+    if (currentSystemType === 'ip') {
+        poeSwitchSection.style.display = 'block';
+    } else {
+        poeSwitchSection.style.display = 'none';
+        document.getElementById('poe-switch').checked = false;
     }
 }
 
@@ -214,7 +280,7 @@ function updateRecorderForChannels() {
             const price = parseFloat(priceAttr);
             const priceElement = document.getElementById('dvr-nvr-price');
             if (priceElement) {
-                priceElement.textContent = formatCurrency(price);
+                priceElement.textContent = `R ${formatCurrency(price)}`;
             }
         }
     }
@@ -243,6 +309,7 @@ function updateSystemType() {
     
     // Update prices for system type
     updatePricesForSystemType();
+    updatePoeSwitchVisibility();
 }
 
 function updatePricesForSystemType() {
@@ -310,7 +377,6 @@ function applyPriceVariation(basePrice, itemId) {
 function updateTotals() {
     let equipmentSubtotal = 0;
     let servicesSubtotal = 0;
-    let cableSubtotal = 0;
     
     // Get active storage option
     const activeStorage = document.querySelector('.storage-option.active');
@@ -319,14 +385,9 @@ function updateTotals() {
     // Check ceiling access
     const activeAccessBtn = document.querySelector('.access-btn.active');
     const ceilingAccessible = activeAccessBtn ? activeAccessBtn.getAttribute('data-access') === 'yes' : true;
-    const ceilingDiscount = ceilingAccessible ? 700 : 0;
     
     // Calculate piping cost
     const pipingTotal = pipingLength * pipingRate;
-    
-    // Get labour amount
-    const labourAmountEl = document.querySelector('.labour-amount');
-    const currentLabourAmount = labourAmountEl ? parseInt(labourAmountEl.textContent.replace('R', '').replace(/,/g, '')) : 1500;
     
     // Loop through all items
     document.querySelectorAll('.item').forEach(item => {
@@ -366,35 +427,55 @@ function updateTotals() {
                 const itemTotal = price * quantity;
                 
                 itemTotalElement.innerHTML = `R ${formatCurrency(itemTotal)}`;
-                
-                // Separate cable costs
-                if (checkbox.id.includes('cable') || checkbox.id.includes('connectors')) {
-                    cableSubtotal += itemTotal;
-                } else {
-                    equipmentSubtotal += itemTotal;
-                }
+                equipmentSubtotal += itemTotal;
             } else {
                 itemTotalElement.innerHTML = 'R 0';
             }
         }
     });
     
+    // Add new sections to equipment subtotal
+    // POE Switch
+    const poeSwitchCheckbox = document.getElementById('poe-switch');
+    if (poeSwitchCheckbox && poeSwitchCheckbox.checked && currentSystemType === 'ip') {
+        const poeSwitchSelect = document.getElementById('poe-switch-select');
+        const selectedOption = poeSwitchSelect.options[poeSwitchSelect.selectedIndex];
+        const poePrice = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+        equipmentSubtotal += poePrice;
+    }
+    
+    // Monitor Installation
+    const monitorCheckbox = document.getElementById('monitor-installation');
+    if (monitorCheckbox && monitorCheckbox.checked) {
+        const monitorPrice = parseFloat(document.getElementById('monitor-price').value) || 0;
+        equipmentSubtotal += monitorPrice;
+    }
+    
+    // Full System Installation (ALWAYS included as labour)
+    const systemInstallationAmount = parseFloat(document.getElementById('system-installation-amount').value) || 0;
+    servicesSubtotal += systemInstallationAmount;
+    
     // Add storage
     equipmentSubtotal += storagePrice;
     
-    // Add piping cost to services
-    servicesSubtotal += pipingTotal;
+    // Add piping cost to services (only if ceiling not accessible)
+    if (!ceilingAccessible) {
+        servicesSubtotal += pipingTotal;
+    }
     
-    // Add cable extra charge
-    cableSubtotal += cableExtraCharge;
-    
-    // Add labour to services (minus discount if ceiling accessible)
-    servicesSubtotal += currentLabourAmount - ceilingDiscount;
+    // Add extra items
+    let extraItemsTotal = 0;
+    document.querySelectorAll('.extra-item-row').forEach(row => {
+        const priceInput = row.querySelector('.extra-item-price');
+        const price = parseFloat(priceInput.value) || 0;
+        extraItemsTotal += price;
+    });
+    equipmentSubtotal += extraItemsTotal;
     
     // Update summary
     const taxRate = 0.15;
-    const taxAmount = (equipmentSubtotal + servicesSubtotal + cableSubtotal) * taxRate;
-    const grandTotal = equipmentSubtotal + servicesSubtotal + cableSubtotal + taxAmount;
+    const taxAmount = (equipmentSubtotal + servicesSubtotal) * taxRate;
+    const grandTotal = equipmentSubtotal + servicesSubtotal + taxAmount;
     
     const equipmentEl = document.getElementById('equipment-subtotal');
     const servicesEl = document.getElementById('services-subtotal');
@@ -462,13 +543,6 @@ function generatePDF() {
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.rect(0, 0, 210, 40, 'F');
     
-    // Add brand logo
-    try {
-        doc.addImage(brandLogos[currentBrand], 'PNG', 20, 8, 35, 12);
-    } catch (e) {
-        console.warn('Logo not loaded:', e);
-    }
-    
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
     doc.text('Crown Secure Systems', 105, 14, { align: 'center' });
@@ -525,15 +599,15 @@ function generatePDF() {
     doc.text('PROJECT DETAILS', 20, yPosition);
     yPosition += 10;
     
-    // Table headers with proper alignment
+    // Table headers with proper alignment (WITH PRICE COLUMN)
     doc.setFontSize(13);
     doc.setTextColor(0, 0, 0);
     doc.setFont(undefined, 'bold');
     
     // Fixed column positions for perfect alignment
     const descX = 20;
-    const qtyX = 130;
-    const priceX = 150;
+    const qtyX = 120;
+    const priceX = 140;
     const totalX = 175;
     
     doc.text('Description', descX, yPosition);
@@ -553,6 +627,26 @@ function generatePDF() {
     
     // Collect all items first to calculate proper heights
     const items = [];
+    
+    // Add extra items
+    document.querySelectorAll('.extra-item-row').forEach(row => {
+        const descInput = row.querySelector('.extra-item-desc');
+        const priceInput = row.querySelector('.extra-item-price');
+        const desc = descInput?.value || 'Additional Item';
+        const price = parseFloat(priceInput?.value) || 0;
+        
+        if (desc && price > 0) {
+            items.push({
+                name: desc,
+                qty: '1',
+                price: `R ${formatCurrency(price)}`,
+                total: `R ${formatCurrency(price)}`,
+                totalValue: price
+            });
+        }
+    });
+    
+    // Add regular items
     document.querySelectorAll('.item').forEach(item => {
         if (item.style.display === 'none') return;
         const checkbox = item.querySelector('input[type="checkbox"]');
@@ -572,6 +666,39 @@ function generatePDF() {
         });
     });
     
+    // Add POE Switch
+    const poeSwitchCheckbox = document.getElementById('poe-switch');
+    if (poeSwitchCheckbox && poeSwitchCheckbox.checked && currentSystemType === 'ip') {
+        const poeSwitchSelect = document.getElementById('poe-switch-select');
+        const selectedOption = poeSwitchSelect.options[poeSwitchSelect.selectedIndex];
+        const poePrice = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+        const channelCount = selectedOption.value;
+        
+        items.push({
+            name: `${channelCount} Channel POE Switch`,
+            qty: '1',
+            price: `R ${formatCurrency(poePrice)}`,
+            total: `R ${formatCurrency(poePrice)}`,
+            totalValue: poePrice
+        });
+    }
+    
+    // Add Monitor Installation
+    const monitorCheckbox = document.getElementById('monitor-installation');
+    if (monitorCheckbox && monitorCheckbox.checked) {
+        const monitorBrand = document.getElementById('monitor-brand')?.value || '';
+        const monitorPrice = parseFloat(document.getElementById('monitor-price')?.value) || 0;
+        const monitorSize = document.getElementById('monitor-size')?.value || '';
+        
+        items.push({
+            name: `Monitor Installation - ${monitorBrand} ${monitorSize}"`,
+            qty: '1',
+            price: `R ${formatCurrency(monitorPrice)}`,
+            total: `R ${formatCurrency(monitorPrice)}`,
+            totalValue: monitorPrice
+        });
+    }
+    
     // Add storage
     const activeStorage = document.querySelector('.storage-option.active');
     if (activeStorage) {
@@ -587,7 +714,10 @@ function generatePDF() {
     }
     
     // Add piping if applicable
-    if (pipingLength > 0) {
+    const activeAccessBtn = document.querySelector('.access-btn.active');
+    const ceilingAccessible = activeAccessBtn ? activeAccessBtn.getAttribute('data-access') === 'yes' : true;
+    
+    if (!ceilingAccessible && pipingLength > 0) {
         const pipingTotal = pipingLength * pipingRate;
         items.push({
             name: `Conduit & Piping Installation (${pipingLength}m)`,
@@ -598,22 +728,35 @@ function generatePDF() {
         });
     }
     
-    // Display items with proper formatting - NO PER-ITEM BORDERS
+    // Display items with proper formatting
     items.forEach((item, index) => {
         // Check for page break
-        if (yPosition > 250) {
+        if (yPosition > 180) {
             doc.addPage();
             yPosition = 20;
-            itemCount = 0;
+            
+            // Add table headers on new page
+            doc.setFontSize(13);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont(undefined, 'bold');
+            doc.text('Description', descX, yPosition);
+            doc.text('Qty', qtyX, yPosition);
+            doc.text('Price', priceX, yPosition);
+            doc.text('Total', totalX, yPosition);
+            yPosition += 7;
+            doc.setDrawColor(200, 200, 200);
+            doc.line(descX, yPosition, 190, yPosition);
+            yPosition += 10;
+            doc.setFont(undefined, 'normal');
         }
         
         // Split long item names
-        const splitName = doc.splitTextToSize(item.name, 85);
+        const splitName = doc.splitTextToSize(item.name, 80);
         
         // Item description
         doc.text(splitName, descX, yPosition);
         
-        // Quantities and prices - perfectly aligned
+        // Quantities, prices and totals - perfectly aligned
         doc.text(item.qty, qtyX, yPosition);
         doc.text(item.price, priceX, yPosition);
         doc.text(item.total, totalX, yPosition);
@@ -626,18 +769,21 @@ function generatePDF() {
         itemCount++;
     });
     
-    yPosition += 12;
-    
-    // Totals section with perfect alignment and consistent line height
-    const labourAmountEl = document.querySelector('.labour-amount');
-    const labourAmount = labourAmountEl ? parseInt(labourAmountEl.textContent.replace('R', '').replace(/,/g, '')) : 1500;
-    const activeAccessBtn = document.querySelector('.access-btn.active');
-    const ceilingAccessible = activeAccessBtn ? activeAccessBtn.getAttribute('data-access') === 'yes' : true;
-    const finalLabourAmount = ceilingAccessible ? labourAmount - 700 : labourAmount;
+    // Calculate totals
+    const systemInstallationAmount = parseFloat(document.getElementById('system-installation-amount').value) || 0;
     
     const taxRate = 0.15;
-    const taxAmount = (subtotal + finalLabourAmount) * taxRate;
-    const grandTotal = subtotal + finalLabourAmount + taxAmount;
+    const taxAmount = (subtotal + systemInstallationAmount) * taxRate;
+    const grandTotal = subtotal + systemInstallationAmount + taxAmount;
+    
+    // Check if we need a new page for totals
+    if (yPosition > 200) {
+        doc.addPage();
+        yPosition = 20;
+    }
+    
+    // Totals section with perfect alignment and consistent line height
+    yPosition += 10;
     
     // Draw separator line
     doc.setDrawColor(200, 200, 200);
@@ -652,9 +798,9 @@ function generatePDF() {
     doc.text(`R ${formatCurrency(subtotal)}`, totalX, yPosition, { align: 'right' });
     yPosition += 8;
     
-    // Full System Installation & Setup - renamed from Services Subtotal
+    // Full System Installation & Setup
     doc.text('Full System Installation & Setup:', descX, yPosition);
-    doc.text(`R ${formatCurrency(finalLabourAmount)}`, totalX, yPosition, { align: 'right' });
+    doc.text(`R ${formatCurrency(systemInstallationAmount)}`, totalX, yPosition, { align: 'right' });
     yPosition += 8;
     
     // VAT
@@ -668,12 +814,12 @@ function generatePDF() {
     doc.text(`R ${formatCurrency(grandTotal)}`, totalX, yPosition, { align: 'right' });
     yPosition += 15;
     
-    // Installation note if ceiling accessible
+    // Ceiling accessibility message
     if (ceilingAccessible) {
         doc.setFontSize(13);
         doc.setFont(undefined, 'normal');
         doc.setTextColor(0, 128, 0);
-        doc.text('| Ceiling accessible - R700 Installation Discount Applied |', descX, yPosition);
+        doc.text('| Ceiling accessible - No piping installation required |', descX, yPosition);
         doc.setTextColor(0, 0, 0);
         yPosition += 10;
     }
@@ -682,7 +828,7 @@ function generatePDF() {
     doc.addPage();
     yPosition = 20;
     
-    // --- Banking details table (fully bordered + aligned) ---
+    // Banking details table
     doc.setFont(undefined, "bold");
     doc.text("Banking Details", 20, yPosition);
     yPosition += 6;
@@ -690,11 +836,11 @@ function generatePDF() {
     doc.setFont(undefined, "normal");
 
     // Table settings
-    const startX = 20;     // left margin
+    const startX = 20;
     const startY = yPosition;
-    const col1Width = 60;  // label column width
-    const col2Width = 110; // value column width
-    const rowHeight = 10;  // row height
+    const col1Width = 60;
+    const col2Width = 110;
+    const rowHeight = 10;
     const borderColor = [180, 180, 180];
 
     // Data for rows
@@ -712,23 +858,22 @@ function generatePDF() {
     // Draw horizontal and vertical lines
     for (let i = 0; i <= bankingDetails.length; i++) {
     const y = startY + i * rowHeight;
-    doc.line(startX, y, startX + col1Width + col2Width, y); // horizontal line
+    doc.line(startX, y, startX + col1Width + col2Width, y);
     }
-    doc.line(startX, startY, startX, startY + rowHeight * bankingDetails.length); // left border
-    doc.line(startX + col1Width, startY, startX + col1Width, startY + rowHeight * bankingDetails.length); // middle border
-    doc.line(startX + col1Width + col2Width, startY, startX + col1Width + col2Width, startY + rowHeight * bankingDetails.length); // right border
+    doc.line(startX, startY, startX, startY + rowHeight * bankingDetails.length);
+    doc.line(startX + col1Width, startY, startX + col1Width, startY + rowHeight * bankingDetails.length);
+    doc.line(startX + col1Width + col2Width, startY, startX + col1Width + col2Width, startY + rowHeight * bankingDetails.length);
 
     // Add text inside cells
     for (let i = 0; i < bankingDetails.length; i++) {
-    const yText = startY + i * rowHeight + 7; // vertical padding
-    doc.text(bankingDetails[i][0], startX + 4, yText); // label
-    doc.text(bankingDetails[i][1], startX + col1Width + 4, yText); // value
+    const yText = startY + i * rowHeight + 7;
+    doc.text(bankingDetails[i][0], startX + 4, yText);
+    doc.text(bankingDetails[i][1], startX + col1Width + 4, yText);
     }
 
-    yPosition = startY + rowHeight * bankingDetails.length + 16; // space after table
+    yPosition = startY + rowHeight * bankingDetails.length + 16;
 
-
-    // Package Includes section with even spacing
+    // Package Includes section
     doc.setFont(undefined, 'bold');
     doc.text('Package Includes:', 20, yPosition);
     yPosition += 10;
@@ -748,25 +893,12 @@ function generatePDF() {
     
     yPosition += 12;
     
-    // Warranty section
-    doc.setFont(undefined, 'bold');
-    doc.text('Warranty:', 20, yPosition);
-    yPosition += 10;
-    
-    doc.setFont(undefined, 'normal');
-    const warrantyItems = [
-        'Equipment: 12 months (brand dependent)',
-        'Installation workmanship: 6 months'
-    ];
-    
-    warrantyItems.forEach(item => {
-        doc.text(`• ${item}`, 25, yPosition);
-        yPosition += 8;
-    });
-    
-    yPosition += 12;
-    
     // Payment Terms section
+    if (yPosition > 250) {
+        doc.addPage();
+        yPosition = 20;
+    }
+    
     doc.setFont(undefined, 'bold');
     doc.text('Payment Terms:', 20, yPosition);
     yPosition += 10;
@@ -782,16 +914,14 @@ function generatePDF() {
         yPosition += 8;
     });
     
-    // Page 2 footer: always fixed to bottom of page 2
+    // Page footer
     const pageHeight = doc.internal.pageSize.getHeight();
-    const footerMargin = 18; // distance from bottom
+    const footerMargin = 18;
     const footerY = pageHeight - footerMargin;
     
-    // small grey line above footer (optional)
     doc.setDrawColor(220, 220, 220);
     doc.line(20, footerY - 12, 190, footerY - 12);
     
-    // footer text (centered)
     doc.setFontSize(13);
     doc.setTextColor(100, 100, 100);
     doc.text(`Thank you ${clientName.charAt(0).toUpperCase() + clientName.slice(1)} for considering Crown Secure Systems.`, 105, footerY - 6, { align: 'center' });

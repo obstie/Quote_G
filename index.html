@@ -41,6 +41,15 @@
             </div>
         </div>
 
+        <!-- Extra Items Section -->
+        <div class="extra-items-section">
+            <h3>Additional Items</h3>
+            <div id="extra-items-container">
+                <!-- No default item row - only appears when "Add Another Item" is clicked -->
+            </div>
+            <button type="button" class="add-item-btn" id="add-extra-item">+ Add Item</button>
+        </div>
+
         <!-- System Type Selection -->
         <div class="system-type-section">
             <h3>System Configuration</h3>
@@ -95,20 +104,38 @@
                                        checked>
                             </div>
                             <div>
-                                <div class="item-name" id="dvr-nvr-name">4 Channel NVR with H.265+ Compression</div>
-                                <div class="item-desc" id="dvr-nvr-desc">Network Video Recorder for IP cameras</div>
+                                <div class="item-name" id="dvr-nvr-name">4 Channel NVR with H.265</div>
+                                <div class="item-desc" id="dvr-nvr-desc">NVR for IP cameras</div>
                             </div>
                         </div>
-                        <div class="item-price">R <span id="dvr-nvr-price">3,499</span></div>
-                        <input type="number" class="quantity" value="1" min="1" max="1" data-for="dvr-nvr" readonly>
+                        <div class="item-price" id="dvr-nvr-price">R 3,499</div>
                         <div class="item-total">R <span id="dvr-nvr-total">3,499</span></div>
+                    </div>
+
+                    <!-- POE Switch Section (Only for IP Systems) under NVR -->
+                    <div class="poe-switch-section" id="poe-switch-section">
+                        <div class="item-info">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="poe-switch" checked>
+                            </div>
+                            <div>
+                                <div class="item-name">POE Switch</div>
+                                <div class="item-desc">Power over Ethernet switch for IP cameras</div>
+                            </div>
+                        </div>
+                        <select class="poe-dropdown" id="poe-switch-select">
+                            <option value="4" data-price="899">4 Channel - R 899</option>
+                            <option value="8" data-price="1299">8 Channel - R 1,299</option>
+                            <option value="12" data-price="1699">12 Channel - R 1,699</option>
+                            <option value="16" data-price="1999">16 Channel - R 1,999</option>
+                        </select>
                     </div>
                     
                     <!-- Power Supply Unit -->
                     <div class="item" data-brands="hikvision,dahua" data-types="ip,analog">
                         <div class="item-info">
                             <div class="checkbox-container">
-                                <input type="checkbox" id="power-supply" data-price="899" checked>
+                                <input type="checkbox" id="power-supply" data-price="933" checked>
                             </div>
                             <div>
                                 <div class="item-name">Centralized Power Supply Unit</div>
@@ -116,7 +143,6 @@
                             </div>
                         </div>
                         <div class="item-price">R 899</div>
-                        <input type="number" class="quantity" value="1" min="1" max="1" data-for="power-supply" readonly>
                         <div class="item-total">R 899</div>
                     </div>
                     
@@ -127,7 +153,7 @@
                                 <input type="checkbox" id="cat6-cable" data-price="35" checked>
                             </div>
                             <div>
-                                <div class="item-name">CAT6 Ethernet Cable (per meter)</div>
+                                <div class="item-name">CAT6 Ethernet Cable</div>
                                 <div class="item-desc">For IP camera systems - Weatherproof</div>
                             </div>
                         </div>
@@ -143,7 +169,7 @@
                                 <input type="checkbox" id="rg59-cable" data-price="25" checked>
                             </div>
                             <div>
-                                <div class="item-name">RG59 Siamese Cable (per meter)</div>
+                                <div class="item-name">RG59 Siamese Cable (Per meter)</div>
                                 <div class="item-desc">Pre-made Power+Video Cables for analog systems</div>
                             </div>
                         </div>
@@ -333,6 +359,24 @@
                 <div class="category">
                     <h3><span class="category-icon">💾</span> Storage Options</h3>
                     
+                    <!-- Monitor Installation Section -->
+                    <div class="monitor-installation">
+                        <div class="item-info">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="monitor-installation" checked>
+                            </div>
+                            <div>
+                                <div class="item-name">Monitor Installation</div>
+                                <div class="item-desc">Professional monitor setup and mounting</div>
+                            </div>
+                        </div>
+                        <div class="monitor-fields">
+                            <input type="text" id="monitor-brand" placeholder="Brand" value="Samsung">
+                            <input type="number" id="monitor-price" placeholder="Price" value="2499" min="0">
+                            <input type="number" id="monitor-size" placeholder="Size (inches)" value="24" min="15" max="85">
+                        </div>
+                    </div>
+                    
                     <div class="storage-options">
                         <div class="storage-option active" data-size="2" data-price="1499">
                             <div>2TB HDD</div>
@@ -355,6 +399,19 @@
                 
                 <div class="category">
                     <h3><span class="category-icon">🔧</span> Professional Services</h3>
+                    
+                    <!-- Full System Installation & Setup -->
+                    <div class="full-system-section">
+                        <div class="item-info">
+                            <div style="flex: 1;">
+                                <div class="item-name">Full System Installation & Setup</div>
+                                <div class="item-desc">Complete professional installation and configuration</div>
+                            </div>
+                        </div>
+                        <div class="system-amount-control">
+                            <input type="number" class="system-amount-input" id="system-installation-amount" value="1500" min="0">
+                        </div>
+                    </div>
                     
                     <!-- Ceiling Access Section -->
                     <div class="ceiling-access">
@@ -388,18 +445,11 @@
                         </div>
                     </div>
 
-                    <!-- Labour Section -->
-                    <div class="labour-section">
-                        <div class="item-info">
-                            <div style="flex: 1;">
-                                <div class="item-name">Full System Installation & Setup</div>
-                                <div class="item-desc">Professional installation and configuration</div>
-                            </div>
-                        </div>
-                        <div class="labour-controls">
-                            <button type="button" class="labour-btn" id="decrease-labour">- R50</button>
-                            <span class="labour-amount">R 1,500</span>
-                            <button type="button" class="labour-btn" id="increase-labour">+ R50</button>
+                    <!-- Notes Section -->
+                    <div class="notes-section">
+                        <button type="button" class="add-notes-btn" id="add-notes-btn">+ Add Notes</button>
+                        <div id="notes-container">
+                            <!-- Notes will be added here when button is clicked -->
                         </div>
                     </div>
                 </div>
@@ -433,12 +483,6 @@
                         <li>Configuration for mobile app viewing</li>
                         <li>System testing and demonstration upon completion</li>
                         <li>Free 7-day remote support after installation</li>
-                    </ul>
-                    
-                    <h3 style="margin-top: 20px;">Warranty:</h3>
-                    <ul>
-                        <li>Equipment: 12 months (brand dependent)</li>
-                        <li>Installation workmanship: 6 months</li>
                     </ul>
                     
                     <h3 style="margin-top: 20px;">Payment Terms:</h3>

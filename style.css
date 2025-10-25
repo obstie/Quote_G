@@ -9,15 +9,15 @@
 
 /* Hikvision Theme */
 .theme-hikvision {
-    --primary: #e53238; /* Hikvision red */
-    --secondary: #0066b3; /* Hikvision blue */
+    --primary: #e53238;
+    --secondary: #0066b3;
     --accent: #e53238;
 }
 
 /* Dahua Theme */
 .theme-dahua {
-    --primary: #0056a4; /* Dahua blue */
-    --secondary: #ff6a00; /* Dahua orange */
+    --primary: #0056a4;
+    --secondary: #ff6a00;
     --accent: #0056a4;
 }
 
@@ -536,7 +536,7 @@ footer {
 
 /* Ceiling Access */
 .ceiling-access {
-    margin-top: 0;
+    margin-top: 15px;
     padding: 15px;
     background: #f8f9fa;
     border-radius: 5px;
@@ -618,43 +618,172 @@ footer {
     text-align: right;
 }
 
-/* Labour Section */
-.labour-section {
+/* New Styles for Additional Sections */
+.extra-items-section, .notes-section-main {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.extra-items-section h3, .notes-section-main h3 {
+    color: var(--primary);
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.extra-item-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+.extra-item-row input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    flex: 1;
+}
+
+.delete-item-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.delete-item-btn:hover {
+    background: #c82333;
+}
+
+.add-item-btn, .add-notes-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 10px;
+    font-size: 1rem;
+}
+
+.add-item-btn:hover, .add-notes-btn:hover {
+    background: var(--primary);
+}
+
+.monitor-installation {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.monitor-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.monitor-fields input {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 0.95rem;
+    width: 100%;
+}
+
+.poe-switch-section {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.poe-dropdown {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    margin-top: 10px;
+}
+
+.full-system-section {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.system-amount-control {
+    margin-top: 10px;
+}
+
+.system-amount-input {
+    width: 120px;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    text-align: center;
+}
+
+/* Notes Section in Professional Services */
+.notes-section {
     margin-top: 15px;
     padding: 15px;
     background: #f8f9fa;
     border-radius: 5px;
 }
 
-.labour-controls {
+.note-row {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 10px;
-}
-
-.labour-amount {
-    font-weight: 600;
-    color: var(--primary);
-    font-size: 1.2rem;
-    min-width: 100px;
-    text-align: center;
-}
-
-.labour-btn {
-    padding: 8px 15px;
-    background: var(--accent);
-    color: white;
-    border: none;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: white;
     border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-weight: 600;
+    border: 1px solid #ddd;
 }
 
-.labour-btn:hover {
-    background: var(--primary);
+.note-headline-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    flex: 1;
+    min-width: 150px;
+}
+
+.note-content-textarea {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    flex: 2;
+    min-height: 60px;
+    resize: vertical;
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.4;
+}
+
+.note-content-textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(44, 90, 160, 0.2);
+    outline: none;
 }
 
 @media (max-width: 480px) {
@@ -676,10 +805,6 @@ footer {
     
     h1 {
         font-size: 1.7rem;
-    }
-    
-    .labour-controls {
-        flex-wrap: wrap;
     }
     
     .system-type-options {
@@ -709,6 +834,28 @@ footer {
     .piping-calculator {
         flex-direction: column;
         align-items: flex-start;
+    }
+    
+    .monitor-fields {
+        grid-template-columns: 1fr;
+    }
+    
+    .extra-item-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .system-amount-input {
+        width: 100%;
+    }
+    
+    .note-row {
+        flex-direction: column;
+    }
+    
+    .note-headline-input,
+    .note-content-textarea {
+        width: 100%;
     }
 }
 
