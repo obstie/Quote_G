@@ -926,7 +926,7 @@ function generatePDF() {
         'Supply and installation of all listed equipment',
         'Configuration for mobile app viewing',
         'System testing and demonstration upon completion',
-        'Free 7-day remote support after installation'
+        '10 Mitres Free Trunking'
     ];
     
     packageItems.forEach(item => {
