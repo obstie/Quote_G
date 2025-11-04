@@ -653,7 +653,7 @@ function generatePDF() {
         if (!checkbox || !checkbox.checked) return;
         
         const itemName = item.querySelector('.item-name')?.textContent || 'Item';
-        const quantity = item.querySelector('.quantity')?.value || '1';
+        const quantity = item.querySelector('.quantity')?.value || '-';
         const itemPrice = item.querySelector('.item-price')?.textContent || 'R 0';
         const itemTotal = item.querySelector('.item-total')?.textContent || 'R 0';
         
