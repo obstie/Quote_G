@@ -32,6 +32,9 @@ function initializeApp() {
     
     // Add random price variations
     applyRandomPriceVariations();
+    
+    // Initial brand-specific section filtering
+    filterBrandSpecificSections();
 }
 
 function setupEventListeners() {
@@ -115,6 +118,7 @@ function setupEventListeners() {
             currentBrand = selectedBrand;
             filterByBrand(selectedBrand);
             applyBrandTheme(selectedBrand);
+            filterBrandSpecificSections();
             updateTotals();
         });
     });
@@ -230,12 +234,39 @@ function setupNewEventListeners() {
         });
     }
 
+    // PVC Piping price inputs
+    document.querySelectorAll('.pvc-price-input').forEach(input => {
+        input.addEventListener('input', function() {
+            const checkboxId = this.id.replace('-price', '');
+            const checkbox = document.getElementById(checkboxId);
+            if (checkbox) {
+                checkbox.setAttribute('data-price', this.value || '0');
+                updateTotals();
+            }
+        });
+    });
+
     // Extra items price inputs
     document.addEventListener('input', function(e) {
         if (e.target.classList.contains('extra-item-price') || e.target.classList.contains('extra-item-desc')) {
             updateTotals();
         }
     });
+}
+
+function filterBrandSpecificSections() {
+    const dahuaSection = document.getElementById('dahua-section');
+    const hikvisionSection = document.getElementById('hikvision-section');
+    
+    if (dahuaSection && hikvisionSection) {
+        if (currentBrand === 'dahua') {
+            dahuaSection.style.display = 'block';
+            hikvisionSection.style.display = 'none';
+        } else {
+            dahuaSection.style.display = 'none';
+            hikvisionSection.style.display = 'block';
+        }
+    }
 }
 
 function updatePoeSwitchVisibility() {
@@ -337,7 +368,7 @@ function updatePricesForSystemType() {
             if (priceElement) {
                 const isCable = checkbox.id.includes('cable');
                 const isConnector = checkbox.id.includes('connectors');
-                priceElement.innerHTML = `R ${formatCurrency(variedPrice)}${isCable ? '/m' : isConnector ? '/pack' : ''}`;
+                priceElement.innerHTML = `R ${formatCurrency(variedPrice)}${isCable ? '' : isConnector ? '/pack' : ''}`;
             }
         }
     });
@@ -451,10 +482,6 @@ function updateTotals() {
         equipmentSubtotal += monitorPrice;
     }
     
-    // Full System Installation (NOW included in equipment subtotal)
-    const systemInstallationAmount = parseFloat(document.getElementById('system-installation-amount').value) || 0;
-    equipmentSubtotal += systemInstallationAmount;
-    
     // Add storage
     equipmentSubtotal += storagePrice;
     
@@ -472,19 +499,22 @@ function updateTotals() {
     });
     equipmentSubtotal += extraItemsTotal;
     
-    // Update summary
-    const taxRate = 0.15;
-    const taxAmount = (equipmentSubtotal + servicesSubtotal) * taxRate;
-    const grandTotal = equipmentSubtotal + servicesSubtotal + taxAmount;
+    // Get Full System Installation amount
+    const systemInstallationAmount = parseFloat(document.getElementById('system-installation-amount').value) || 0;
     
-    const equipmentEl = document.getElementById('equipment-subtotal');
-    const servicesEl = document.getElementById('services-subtotal');
-    const taxEl = document.getElementById('tax-amount');
+    // Calculate project subtotal (everything except installation)
+    const projectSubtotal = equipmentSubtotal + servicesSubtotal;
+    
+    // Calculate grand total (project subtotal + installation)
+    const grandTotal = projectSubtotal + systemInstallationAmount;
+    
+    // Update summary
+    const projectSubtotalEl = document.getElementById('project-subtotal');
+    const installationEl = document.getElementById('installation-amount');
     const grandEl = document.getElementById('grand-total');
     
-    if (equipmentEl) equipmentEl.textContent = `R ${formatCurrency(equipmentSubtotal)}`;
-    if (servicesEl) servicesEl.textContent = `R ${formatCurrency(servicesSubtotal)}`;
-    if (taxEl) taxEl.textContent = `R ${formatCurrency(taxAmount)}`;
+    if (projectSubtotalEl) projectSubtotalEl.textContent = `R ${formatCurrency(projectSubtotal)}`;
+    if (installationEl) installationEl.textContent = `R ${formatCurrency(systemInstallationAmount)}`;
     if (grandEl) grandEl.textContent = `R ${formatCurrency(grandTotal)}`;
 }
 
@@ -518,7 +548,7 @@ function applyBrandTheme(brand) {
 
 function formatCurrency(amount) {
     if (isNaN(amount)) amount = 0;
-    return Number(amount).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return Number(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 function generatePDF() {
@@ -544,29 +574,29 @@ function generatePDF() {
     doc.rect(0, 0, 210, 40, 'F');
     
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(25); // Increased from 24
+    doc.setFontSize(25);
     doc.text('Crown Secure Systems', 105, 14, { align: 'center' });
-    doc.setFontSize(17); // Increased from 16
+    doc.setFontSize(17);
     doc.text('Professional CCTV Installation', 105, 26, { align: 'center' });
-    doc.setFontSize(15); // Increased from 14
+    doc.setFontSize(15);
     doc.text(`System: ${systemTypeName} | Brand: ${brandName}`, 105, 33, { align: 'center' });
     
     // Quote details section
     doc.setTextColor(0, 0, 0);
     let yPosition = 50;
     
-    doc.setFontSize(21); // Increased from 20
+    doc.setFontSize(21);
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.text('SECURITY SYSTEM QUOTE', 20, yPosition = 55);
     yPosition += 12;
     
-    doc.setFontSize(15); // Increased from 14
+    doc.setFontSize(15);
     doc.setTextColor(0, 0, 0);
     
     const clientName = document.getElementById('customer-name')?.value || 'Client Name';
     const quoteDate = document.getElementById('quote-date')?.value || '';
     const validUntil = document.getElementById('valid-until')?.value || '';
-    const preparedBy = document.getElementById('company-name')?.value || 'Prepared By';
+    const preparedBy = document.getElementById('company-name')?.value || 'Crown Secure Systems';
     const clientAddress = document.getElementById('client-address')?.value || 'Client Address';
     
     const now = new Date();
@@ -576,7 +606,7 @@ function generatePDF() {
         hour12: false 
     });
     
-    // Client details in two columns - consistent line height
+    // Client details in two columns
     doc.text(`Client: ${clientName.charAt(0).toUpperCase() + clientName.slice(1)}`, 20, yPosition);
     doc.text('Quote Date:', 110, yPosition);
     doc.text(formatDate(quoteDate), 145, yPosition);
@@ -587,20 +617,20 @@ function generatePDF() {
     doc.text(formatDate(validUntil), 145, yPosition);
     yPosition += 8;
     
-    doc.text(`Prepared By: ${preparedBy.charAt(0).toUpperCase() + clientName.slice(1)}`, 20, yPosition);
+    doc.text(`Prepared By: ${preparedBy.charAt(0).toUpperCase() + preparedBy.slice(1)}`, 20, yPosition);
     yPosition += 8;
     
     doc.text(`Client Address: ${clientAddress}`, 20, yPosition);
     yPosition += 15;
     
     // Project details section
-    doc.setFontSize(17); // Increased from 16
+    doc.setFontSize(17);
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.text('PROJECT DETAILS', 20, yPosition);
     yPosition += 10;
     
-    // Table headers with proper alignment (WITH PRICE COLUMN)
-    doc.setFontSize(14); // Increased from 13
+    // Table headers with proper alignment
+    doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
     doc.setFont(undefined, 'bold');
     
@@ -622,8 +652,7 @@ function generatePDF() {
     
     doc.setFont(undefined, 'normal');
     
-    let itemCount = 0;
-    let subtotal = 0;
+    let projectSubtotal = 0;
     
     // Collect all items first to calculate proper heights
     const items = [];
@@ -653,7 +682,7 @@ function generatePDF() {
         if (!checkbox || !checkbox.checked) return;
         
         const itemName = item.querySelector('.item-name')?.textContent || 'Item';
-        const quantity = item.querySelector('.quantity')?.value || '-';
+        const quantity = item.querySelector('.quantity')?.value || '1';
         const itemPrice = item.querySelector('.item-price')?.textContent || 'R 0';
         const itemTotal = item.querySelector('.item-total')?.textContent || 'R 0';
         
@@ -720,23 +749,11 @@ function generatePDF() {
     if (!ceilingAccessible && pipingLength > 0) {
         const pipingTotal = pipingLength * pipingRate;
         items.push({
-            name: `Conduit & Piping Installation (${pipingLength}m)`,
+            name: `Conduit And Piping Installation (${pipingLength}m)`,
             qty: '1',
             price: `R ${formatCurrency(pipingTotal)}`,
             total: `R ${formatCurrency(pipingTotal)}`,
             totalValue: pipingTotal
-        });
-    }
-    
-    // Add Full System Installation as part of the items list
-    const systemInstallationAmount = parseFloat(document.getElementById('system-installation-amount').value) || 0;
-    if (systemInstallationAmount > 0) {
-        items.push({
-            name: 'Full System Installation & Setup',
-            qty: '1',
-            price: `R ${formatCurrency(systemInstallationAmount)}`,
-            total: `R ${formatCurrency(systemInstallationAmount)}`,
-            totalValue: systemInstallationAmount
         });
     }
     
@@ -748,7 +765,7 @@ function generatePDF() {
             yPosition = 20;
             
             // Add table headers on new page
-            doc.setFontSize(14); // Increased from 13
+            doc.setFontSize(14);
             doc.setTextColor(0, 0, 0);
             doc.setFont(undefined, 'bold');
             doc.text('Description', descX, yPosition);
@@ -774,17 +791,17 @@ function generatePDF() {
         doc.text(item.total, totalX, yPosition);
         
         // Calculate height for this row with consistent line height
-        const rowHeight = Math.max(10, splitName.length * 5);
+        const rowHeight = Math.max(10, splitName.length * 7);
         yPosition += rowHeight;
         
-        subtotal += item.totalValue;
-        itemCount++;
+        projectSubtotal += item.totalValue;
     });
     
-    // Calculate totals - Full System Installation is now included in subtotal
-    const taxRate = 0.15;
-    const taxAmount = subtotal * taxRate;
-    const grandTotal = subtotal + taxAmount;
+    // Get Full System Installation amount
+    const systemInstallationAmount = parseFloat(document.getElementById('system-installation-amount').value) || 0;
+    
+    // Calculate grand total
+    const grandTotal = projectSubtotal + systemInstallationAmount;
     
     // Check if we need a new page for totals
     if (yPosition > 200) {
@@ -801,30 +818,30 @@ function generatePDF() {
     yPosition += 10;
     
     doc.setFont(undefined, 'bold');
-    doc.setFontSize(15); // Increased from 14
+    doc.setFontSize(15);
     
-    // Project Subtotal - aligned to the right (now includes Full System Installation)
+    // Project Subtotal - all items total
     doc.text('Project Subtotal:', descX, yPosition);
-    doc.text(`R ${formatCurrency(subtotal)}`, totalX, yPosition, { align: 'right' });
+    doc.text(`R ${formatCurrency(projectSubtotal)}`, totalX, yPosition, { align: 'right' });
     yPosition += 8;
     
-    // VAT
-    doc.text('VAT (15%):', descX, yPosition);
-    doc.text(`R ${formatCurrency(taxAmount)}`, totalX, yPosition, { align: 'right' });
+    // Full System Installation
+    doc.text('Full System Installation:', descX, yPosition);
+    doc.text(`R   ${formatCurrency(systemInstallationAmount)}`, totalX, yPosition, { align: 'right' });
     yPosition += 10;
     
     // Grand Total
-    doc.setFontSize(17); // Increased from 16
-    doc.text('Full System Installation And Setup:', descX, yPosition);
+    doc.setFontSize(17);
+    doc.text('Total:', descX, yPosition);
     doc.text(`R ${formatCurrency(grandTotal)}`, totalX, yPosition, { align: 'right' });
     yPosition += 15;
     
     // Ceiling accessibility message
     if (ceilingAccessible) {
-        doc.setFontSize(14); // Increased from 13
+        doc.setFontSize(14);
         doc.setFont(undefined, 'normal');
         doc.setTextColor(0, 128, 0);
-        doc.text('| Ceiling accessible - No piping installation required |', descX, yPosition);
+        doc.text('| Ceiling accessible - Most of the cable will run through the ceiling |', descX, yPosition);
         doc.setTextColor(0, 0, 0);
         yPosition += 10;
     }
@@ -852,7 +869,7 @@ function generatePDF() {
     const bankingDetails = [
     ["Account Holder", "Crown Secure Systems"],
     ["Bank Name", "Capitec"],
-    ["Account Number", "1234567890"],
+    ["Account Number", "1053 8356 80"],
     ["Reference", `Quote For ${clientName.charAt(0).toUpperCase() + clientName.slice(1)}`]
     ];
 
@@ -948,8 +965,8 @@ function generatePDF() {
     
     doc.setFont(undefined, 'normal');
     const paymentItems = [
-        '50% deposit to confirm booking',
-        'Balance payable upon completion and client satisfaction'
+        'Material to be paid upfront.',
+        'Balance payable upon completion.'
     ];
     
     paymentItems.forEach(item => {
@@ -965,7 +982,7 @@ function generatePDF() {
     doc.setDrawColor(220, 220, 220);
     doc.line(20, footerY - 12, 190, footerY - 12);
     
-    doc.setFontSize(14); // Increased from 13
+    doc.setFontSize(14);
     doc.setTextColor(100, 100, 100);
     doc.text(`Thank you ${clientName.charAt(0).toUpperCase() + clientName.slice(1)} for considering Crown Secure Systems.`, 105, footerY - 6, { align: 'center' });
     doc.text('We look forward to securing your property with our professional solutions.', 105, footerY + 6, { align: 'center' });

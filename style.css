@@ -278,6 +278,23 @@ h1 {
     color: var(--secondary);
 }
 
+.brand-section {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent);
+}
+
+.brand-section h4 {
+    color: var(--primary);
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
 .item {
     display: flex;
     justify-content: space-between;
@@ -786,6 +803,21 @@ footer {
     outline: none;
 }
 
+.pvc-price-input {
+    padding: 5px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    width: 100px;
+    text-align: center;
+}
+
+.pvc-price-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(44, 90, 160, 0.2);
+    outline: none;
+}
+
 @media (max-width: 480px) {
     .item {
         flex-wrap: wrap;
@@ -856,6 +888,14 @@ footer {
     .note-headline-input,
     .note-content-textarea {
         width: 100%;
+    }
+    
+    .brand-section {
+        padding: 10px;
+    }
+    
+    .pvc-price-input {
+        width: 80px;
     }
 }
 
