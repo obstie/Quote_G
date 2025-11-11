@@ -22,6 +22,9 @@ function initializeApp() {
     if (quoteDateEl) quoteDateEl.valueAsDate = today;
     if (validUntilEl) validUntilEl.valueAsDate = validUntil;
     
+    // Initialize extra items section
+    initializeExtraItems();
+    
     // Setup all event listeners
     setupEventListeners();
     
@@ -35,6 +38,65 @@ function initializeApp() {
     
     // Initial brand-specific section filtering
     filterBrandSpecificSections();
+}
+
+// Extra Items Functionality
+function initializeExtraItems() {
+    const addItemBtn = document.getElementById("add-extra-item");
+    const extraItemsContainer = document.getElementById("extra-items-container");
+    const itemTemplate = document.getElementById("extra-item-template");
+
+    // Initialize the first item row
+    addFirstItem();
+
+    // Add new item
+    addItemBtn.addEventListener("click", function() {
+        const newItem = itemTemplate.cloneNode(true);
+        newItem.style.display = "flex";
+        newItem.removeAttribute("id");
+
+        setupItemEventListeners(newItem);
+        extraItemsContainer.appendChild(newItem);
+    });
+}
+
+function addFirstItem() {
+    const extraItemsContainer = document.getElementById("extra-items-container");
+    const itemTemplate = document.getElementById("extra-item-template");
+    
+    const firstItem = itemTemplate.cloneNode(true);
+    firstItem.style.display = "flex";
+    firstItem.removeAttribute("id");
+    
+    setupItemEventListeners(firstItem);
+    extraItemsContainer.insertBefore(firstItem, itemTemplate);
+}
+
+function setupItemEventListeners(item) {
+    const removeBtn = item.querySelector(".remove-item-btn");
+    removeBtn.addEventListener("click", function() {
+        item.remove();
+        updateTotals();
+    });
+
+    // Listen for input changes to recalc total
+    item.querySelectorAll("input").forEach(input => {
+        input.addEventListener("input", updateTotals);
+    });
+}
+
+function calculateExtraItemsTotal() {
+    let extraItemsTotal = 0;
+    const extraItemsContainer = document.getElementById("extra-items-container");
+
+    const allItems = extraItemsContainer.querySelectorAll(".extra-item:not(#extra-item-template)");
+    allItems.forEach(item => {
+        const qty = parseFloat(item.querySelector(".item-qty").value) || 0;
+        const price = parseFloat(item.querySelector(".item-price").value) || 0;
+        extraItemsTotal += qty * price;
+    });
+
+    return extraItemsTotal;
 }
 
 function setupEventListeners() {
@@ -147,111 +209,33 @@ function setupEventListeners() {
         });
     }
     
-    // New Features Event Listeners
-    setupNewEventListeners();
-}
-
-function setupNewEventListeners() {
-    // Extra Items functionality
-    const addItemBtn = document.getElementById('add-extra-item');
-    const extraItemsContainer = document.getElementById('extra-items-container');
-
-    addItemBtn.addEventListener('click', function() {
-        const newRow = document.createElement('div');
-        newRow.className = 'extra-item-row';
-        newRow.innerHTML = `
-            <input type="text" class="extra-item-desc" placeholder="Item Description">
-            <input type="number" class="extra-item-price" placeholder="Price" min="0">
-            <button type="button" class="delete-item-btn">Delete</button>
-        `;
-        extraItemsContainer.appendChild(newRow);
-
-        // Add event listener to the new delete button
-        newRow.querySelector('.delete-item-btn').addEventListener('click', function() {
-            newRow.remove();
-            updateTotals();
-        });
-
-        // Add input listeners for the new fields
-        const priceInput = newRow.querySelector('.extra-item-price');
-        const descInput = newRow.querySelector('.extra-item-desc');
-        
-        priceInput.addEventListener('input', updateTotals);
-        descInput.addEventListener('input', updateTotals);
-    });
-
+    // System installation amount
+    const systemInstallInput = document.getElementById('system-installation-amount');
+    if (systemInstallInput) {
+        systemInstallInput.addEventListener('input', updateTotals);
+    }
+    
     // Notes functionality
     const addNotesBtn = document.getElementById('add-notes-btn');
     const notesContainer = document.getElementById('notes-container');
 
-    addNotesBtn.addEventListener('click', function() {
-        const newNoteRow = document.createElement('div');
-        newNoteRow.className = 'note-row';
-        newNoteRow.innerHTML = `
-            <input type="text" class="note-headline-input" placeholder="Headline">
-            <textarea class="note-content-textarea" placeholder="List items (each line will be a bullet point)"></textarea>
-            <button type="button" class="delete-item-btn">Delete</button>
-        `;
-        notesContainer.appendChild(newNoteRow);
+    if (addNotesBtn) {
+        addNotesBtn.addEventListener('click', function() {
+            const newNoteRow = document.createElement('div');
+            newNoteRow.className = 'note-row';
+            newNoteRow.innerHTML = `
+                <input type="text" class="note-headline-input" placeholder="Headline">
+                <textarea class="note-content-textarea" placeholder="List items (each line will be a bullet point)"></textarea>
+                <button type="button" class="remove-item-btn">−</button>
+            `;
+            notesContainer.appendChild(newNoteRow);
 
-        // Add event listener to the new delete button
-        newNoteRow.querySelector('.delete-item-btn').addEventListener('click', function() {
-            newNoteRow.remove();
-        });
-    });
-
-    // POE Switch functionality
-    const poeSwitchCheckbox = document.getElementById('poe-switch');
-    const poeSwitchSelect = document.getElementById('poe-switch-select');
-
-    poeSwitchCheckbox.addEventListener('change', function() {
-        updateTotals();
-    });
-
-    poeSwitchSelect.addEventListener('change', function() {
-        updateTotals();
-    });
-
-    // Monitor Installation functionality
-    const monitorCheckbox = document.getElementById('monitor-installation');
-    const monitorBrand = document.getElementById('monitor-brand');
-    const monitorPrice = document.getElementById('monitor-price');
-    const monitorSize = document.getElementById('monitor-size');
-
-    [monitorCheckbox, monitorBrand, monitorPrice, monitorSize].forEach(element => {
-        if (element) {
-            element.addEventListener('input', function() {
-                updateTotals();
+            // Add event listener to the new delete button
+            newNoteRow.querySelector('.remove-item-btn').addEventListener('click', function() {
+                newNoteRow.remove();
             });
-        }
-    });
-
-    // Full System Installation functionality
-    const systemInstallationAmount = document.getElementById('system-installation-amount');
-    if (systemInstallationAmount) {
-        systemInstallationAmount.addEventListener('input', function() {
-            updateTotals();
         });
     }
-
-    // PVC Piping price inputs
-    document.querySelectorAll('.pvc-price-input').forEach(input => {
-        input.addEventListener('input', function() {
-            const checkboxId = this.id.replace('-price', '');
-            const checkbox = document.getElementById(checkboxId);
-            if (checkbox) {
-                checkbox.setAttribute('data-price', this.value || '0');
-                updateTotals();
-            }
-        });
-    });
-
-    // Extra items price inputs
-    document.addEventListener('input', function(e) {
-        if (e.target.classList.contains('extra-item-price') || e.target.classList.contains('extra-item-desc')) {
-            updateTotals();
-        }
-    });
 }
 
 function filterBrandSpecificSections() {
@@ -406,8 +390,8 @@ function applyPriceVariation(basePrice, itemId) {
 }
 
 function updateTotals() {
-    let equipmentSubtotal = 0;
-    let servicesSubtotal = 0;
+    let equipmentTotal = 0;
+    let servicesTotal = 0;
     
     // Get active storage option
     const activeStorage = document.querySelector('.storage-option.active');
@@ -458,64 +442,40 @@ function updateTotals() {
                 const itemTotal = price * quantity;
                 
                 itemTotalElement.innerHTML = `R ${formatCurrency(itemTotal)}`;
-                equipmentSubtotal += itemTotal;
+                equipmentTotal += itemTotal;
             } else {
                 itemTotalElement.innerHTML = 'R 0';
             }
         }
     });
     
-    // Add new sections to equipment subtotal
-    // POE Switch
-    const poeSwitchCheckbox = document.getElementById('poe-switch');
-    if (poeSwitchCheckbox && poeSwitchCheckbox.checked && currentSystemType === 'ip') {
-        const poeSwitchSelect = document.getElementById('poe-switch-select');
-        const selectedOption = poeSwitchSelect.options[poeSwitchSelect.selectedIndex];
-        const poePrice = parseFloat(selectedOption.getAttribute('data-price')) || 0;
-        equipmentSubtotal += poePrice;
-    }
-    
-    // Monitor Installation
-    const monitorCheckbox = document.getElementById('monitor-installation');
-    if (monitorCheckbox && monitorCheckbox.checked) {
-        const monitorPrice = parseFloat(document.getElementById('monitor-price').value) || 0;
-        equipmentSubtotal += monitorPrice;
-    }
+    // Add extra items total
+    const extraItemsTotal = calculateExtraItemsTotal();
+    equipmentTotal += extraItemsTotal;
     
     // Add storage
-    equipmentSubtotal += storagePrice;
+    equipmentTotal += storagePrice;
     
     // Add piping cost to services (only if ceiling not accessible)
     if (!ceilingAccessible) {
-        servicesSubtotal += pipingTotal;
+        servicesTotal += pipingTotal;
     }
-    
-    // Add extra items
-    let extraItemsTotal = 0;
-    document.querySelectorAll('.extra-item-row').forEach(row => {
-        const priceInput = row.querySelector('.extra-item-price');
-        const price = parseFloat(priceInput.value) || 0;
-        extraItemsTotal += price;
-    });
-    equipmentSubtotal += extraItemsTotal;
     
     // Get Full System Installation amount
     const systemInstallationAmount = parseFloat(document.getElementById('system-installation-amount').value) || 0;
+    servicesTotal += systemInstallationAmount;
     
-    // Calculate project subtotal (everything except installation)
-    const projectSubtotal = equipmentSubtotal + servicesSubtotal;
+    // Calculate grand total
+    const grandTotalValue = equipmentTotal + servicesTotal;
     
-    // Calculate grand total (project subtotal + installation)
-    const grandTotal = projectSubtotal + systemInstallationAmount;
+    // Update summary display
+    const equipmentSubtotalEl = document.getElementById('equipment-subtotal');
+    const servicesSubtotalEl = document.getElementById('services-subtotal');
+    const grandTotalEl = document.getElementById('grand-total');
     
-    // Update summary
-    const projectSubtotalEl = document.getElementById('project-subtotal');
-    const installationEl = document.getElementById('installation-amount');
-    const grandEl = document.getElementById('grand-total');
-    
-    if (projectSubtotalEl) projectSubtotalEl.textContent = `R ${formatCurrency(projectSubtotal)}`;
-    if (installationEl) installationEl.textContent = `R ${formatCurrency(systemInstallationAmount)}`;
-    if (grandEl) grandEl.textContent = `R ${formatCurrency(grandTotal)}`;
+    if (equipmentSubtotalEl) equipmentSubtotalEl.textContent = `R ${formatCurrency(equipmentTotal)}`;
+    if (servicesSubtotalEl) servicesSubtotalEl.textContent = `R ${formatCurrency(servicesTotal)}`;
+    if (grandTotalEl) grandTotalEl.textContent = `R ${formatCurrency(grandTotalValue)}`;
 }
 
 function filterByBrand(brand) {
@@ -658,19 +618,21 @@ function generatePDF() {
     const items = [];
     
     // Add extra items
-    document.querySelectorAll('.extra-item-row').forEach(row => {
-        const descInput = row.querySelector('.extra-item-desc');
-        const priceInput = row.querySelector('.extra-item-price');
-        const desc = descInput?.value || 'Additional Item';
-        const price = parseFloat(priceInput?.value) || 0;
+    const extraItemsContainer = document.getElementById("extra-items-container");
+    const allExtraItems = extraItemsContainer.querySelectorAll(".extra-item:not(#extra-item-template)");
+    allExtraItems.forEach(item => {
+        const desc = item.querySelector(".item-desc")?.value || 'Additional Item';
+        const qty = parseFloat(item.querySelector(".item-qty")?.value) || 0;
+        const price = parseFloat(item.querySelector(".item-price")?.value) || 0;
+        const total = qty * price;
         
-        if (desc && price > 0) {
+        if (desc && total > 0) {
             items.push({
                 name: desc,
-                qty: '1',
+                qty: qty.toString(),
                 price: `R ${formatCurrency(price)}`,
-                total: `R ${formatCurrency(price)}`,
-                totalValue: price
+                total: `R ${formatCurrency(total)}`,
+                totalValue: total
             });
         }
     });
@@ -694,39 +656,6 @@ function generatePDF() {
             totalValue: parseFloat(itemTotal.replace('R', '').replace(/,/g, '')) || 0
         });
     });
-    
-    // Add POE Switch
-    const poeSwitchCheckbox = document.getElementById('poe-switch');
-    if (poeSwitchCheckbox && poeSwitchCheckbox.checked && currentSystemType === 'ip') {
-        const poeSwitchSelect = document.getElementById('poe-switch-select');
-        const selectedOption = poeSwitchSelect.options[poeSwitchSelect.selectedIndex];
-        const poePrice = parseFloat(selectedOption.getAttribute('data-price')) || 0;
-        const channelCount = selectedOption.value;
-        
-        items.push({
-            name: `${channelCount} Channel POE Switch`,
-            qty: '1',
-            price: `R ${formatCurrency(poePrice)}`,
-            total: `R ${formatCurrency(poePrice)}`,
-            totalValue: poePrice
-        });
-    }
-    
-    // Add Monitor Installation
-    const monitorCheckbox = document.getElementById('monitor-installation');
-    if (monitorCheckbox && monitorCheckbox.checked) {
-        const monitorBrand = document.getElementById('monitor-brand')?.value || '';
-        const monitorPrice = parseFloat(document.getElementById('monitor-price')?.value) || 0;
-        const monitorSize = document.getElementById('monitor-size')?.value || '';
-        
-        items.push({
-            name: `Monitor Installation - ${monitorBrand} ${monitorSize}"`,
-            qty: '1',
-            price: `R ${formatCurrency(monitorPrice)}`,
-            total: `R ${formatCurrency(monitorPrice)}`,
-            totalValue: monitorPrice
-        });
-    }
     
     // Add storage
     const activeStorage = document.querySelector('.storage-option.active');
@@ -943,7 +872,7 @@ function generatePDF() {
         'Supply and installation of all listed equipment',
         'Configuration for mobile app viewing',
         'System testing and demonstration upon completion',
-        '10 Mitres Free Trunking'
+        '10 Metres Free Trunking'
     ];
     
     packageItems.forEach(item => {
@@ -965,8 +894,8 @@ function generatePDF() {
     
     doc.setFont(undefined, 'normal');
     const paymentItems = [
-        'Material to be paid upfront.',
-        'Balance payable upon completion.'
+        'All installation items to be Paid upfront',
+        'Balance payable upon completion'
     ];
     
     paymentItems.forEach(item => {
