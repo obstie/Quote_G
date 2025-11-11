@@ -79,6 +79,40 @@
                 </div>
             </div>
 
+
+                     
+                    <!-- Ceiling Access Section -->
+                    <div class="ceiling-access">
+                        <div class="item-info">
+                            <div style="flex: 1;">
+                                <div class="item-name">Ceiling Accessibility</div>
+                                <div class="item-desc">Is ceiling accessible for cable routing?</div>
+                            </div>
+                        </div>
+                        <div class="access-option">
+                            <div class="access-btn active" data-access="yes">Yes</div>
+                            <div class="access-btn" data-access="no">No</div>
+                        </div>
+                    </div>
+
+                    <!-- Piping Section (Visible when ceiling not accessible) -->
+                    <div class="piping-section hidden" id="piping-section">
+                        <div class="item-info">
+                            <div style="flex: 1;">
+                                <div class="item-name">Conduit & Piping Installation</div>
+                                <div class="item-desc">Additional piping required for cable routing</div>
+                            </div>
+                        </div>
+                        <div class="piping-controls">
+                            <div class="piping-calculator">
+                                <label for="piping-length">Piping Length (meters):</label>
+                                <input type="number" id="piping-length" value="0" min="0">
+                                <span>× R85/m = </span>
+                                <span class="piping-amount">R 0</span>
+                            </div>
+                        </div>
+                    </div>
+
             <!-- Notes Section -->
             <div class="notes-section">
                 <button type="button" class="add-notes-btn" id="add-notes-btn">+ Add Notes</button>
@@ -117,7 +151,7 @@
                 
                 <h3 style="margin-top: 20px;">Payment Terms:</h3>
                 <ul>
-                    <li>All installation items to be Paid upfront</li>
+                    <li>Installation items to be paid upfront</li>
                     <li>Balance payable upon completion</li>
                 </ul>
             </div>
